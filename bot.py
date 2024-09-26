@@ -163,7 +163,7 @@ def main():
             if running:
                 timeout = 60 * 30
                 print(Fore.LIGHTBLACK_EX + f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] " + 
-                      Fore.YELLOW + f"Waiting for {timeout / 10} minutes before next cycle...")
+                      Fore.YELLOW + f"Waiting for {timeout / 60} minutes before next cycle...")
                 for _ in range(timeout):
                     if not running:
                         break
