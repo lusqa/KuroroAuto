@@ -79,20 +79,61 @@ def player_state(bearer):
     except Exception as e:
         print(f"{Fore.WHITE}Error mining: {e}")
         traceback.print_exc()
-        return None 
+        return None
 
-def mine(energy, bearer):
-    url = "https://ranch-api.kuroro.com/api/Clicks/MiningAndFeeding"
-    save_url = "https://ranch-api.kuroro.com/api/Bf/Save"
+def save(bearer, x, y):
+    url = "https://ranch-api.kuroro.com/api/Bf/Save"
     headers = {
         "authorization": "Bearer " + bearer,
         "referrer": "https://ranch.kuroro.com/",
     }
 
+    payload = [{"x": x, "y": y}]
+    requests.post(
+        url=url,
+        headers=headers,
+        json=payload,
+        timeout=20
+    )
+
+def daily_bonus(bearer):
+    url = "https://ranch-api.kuroro.com/api/DailyStreak/ClaimDailyBonus"
+    headers = {
+        "authorization": "Bearer " + bearer,
+        "referrer": "https://ranch.kuroro.com/",
+    }
+
+    try:
+        response = requests.post(
+            url=url,
+            headers=headers,
+            timeout=20,
+        )
+        data = response.json()
+        message = data["message"]
+
+        print(Fore.LIGHTBLACK_EX + f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] " + 
+                Fore.GREEN + message)
+
+        save(bearer, 240, 466)
+    except Exception as e:
+        print(f"{Fore.WHITE}Error mining: {e}")
+        traceback.print_exc()
+        return None
+
+def mine(energy, bearer):
+    url = "https://ranch-api.kuroro.com/api/Clicks/MiningAndFeeding"
+    headers = {
+        "authorization": "Bearer " + bearer,
+        "referrer": "https://ranch.kuroro.com/",
+    }
+
+    if (energy == 0):
+        save(bearer, 91, 369)
+
     energy_remaining = energy
     while energy_remaining > 0:
         payload = { "feedAmount": 0, "mineAmount": 1 }
-        save_payload = [{"x": 91, "y": 369}]
 
         try:
             requests.post(
@@ -106,12 +147,7 @@ def mine(energy, bearer):
                     Fore.GREEN + f"Energy remaining: " + Fore.WHITE + f"{energy_remaining}")
             energy_remaining = energy_remaining - 1
 
-            requests.post(
-                url=save_url,
-                headers=headers,
-                json=save_payload,
-                timeout=20
-            )
+            save(bearer, 91, 369)
         except Exception as e:
             print(f"{Fore.WHITE}Error mining: {e}")
             traceback.print_exc()
@@ -121,16 +157,17 @@ def mine(energy, bearer):
 
 def feed(shards, bearer):
     url = "https://ranch-api.kuroro.com/api/Clicks/MiningAndFeeding"
-    save_url = "https://ranch-api.kuroro.com/api/Bf/Save"
     headers = {
         "authorization": "Bearer " + bearer,
         "referrer": "https://ranch.kuroro.com/",
     }
 
+    if (shards == 0):
+        save(bearer, 209, 247)
+
     shards_remaining = shards
     while shards_remaining > 0:
         payload = { "feedAmount": 1, "mineAmount": 0 }
-        save_payload = [{"x": 209, "y": 247}]
 
         try:
             requests.post(
@@ -144,12 +181,7 @@ def feed(shards, bearer):
                     Fore.GREEN + f"Shards remaining: " + Fore.WHITE + f"{shards_remaining}")
             shards_remaining = shards_remaining - 1
 
-            requests.post(
-                url=save_url,
-                headers=headers,
-                json=save_payload,
-                timeout=20
-            )
+            save(bearer, 209, 247)
         except Exception as e:
             print(f"{Fore.WHITE}Error feeding: {e}")
             traceback.print_exc()
@@ -172,6 +204,7 @@ def main():
                 print(Fore.LIGHTBLACK_EX + f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] " + 
                       Fore.GREEN + f"Processing Account No.{index}")
                 try:
+                    daily_bonus(encoded_data)
                     energy, shards = player_state(encoded_data)
                     new_shards = mine(energy, encoded_data)
                     feed(shards + new_shards, encoded_data)
@@ -180,9 +213,9 @@ def main():
                           Fore.RED + f"Error processing account {index}: {str(e)}")
             
             if running:
-                wait_time = 60 * 30
+                wait_time = 60 * 10
                 print(Fore.LIGHTBLACK_EX + f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] " + 
-                      Fore.YELLOW + f"Wait for {int(wait_time/60)} minutes!")
+                      Fore.YELLOW + f"Wait for {int(wait_time / 60)} minutes!")
                 for _ in range(wait_time):
                     if not running:
                         break
