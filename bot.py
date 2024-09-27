@@ -37,7 +37,8 @@ def art(total_accounts):
                    
     Auto Claim Bot For Kuroro - Lucky, O Foda
     Author  : Lucas Gomes
-    Github: 
+    Github: ???
+    Telegram: ???
     """ + Style.RESET_ALL)
     
     print(Fore.LIGHTBLACK_EX + f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Total accounts: {total_accounts}")
@@ -82,6 +83,7 @@ def player_state(bearer):
 
 def mine(energy, bearer):
     url = "https://ranch-api.kuroro.com/api/Clicks/MiningAndFeeding"
+    save_url = "https://ranch-api.kuroro.com/api/Bf/Save"
     headers = {
         "authorization": "Bearer " + bearer,
         "referrer": "https://ranch.kuroro.com/",
@@ -89,7 +91,8 @@ def mine(energy, bearer):
 
     energy_remaining = energy
     while energy_remaining > 0:
-        payload = {"feedAmount":0,"mineAmount":1}
+        payload = { "feedAmount": 0, "mineAmount": 1 }
+        save_payload = [{"x": 91, "y": 369}]
 
         try:
             requests.post(
@@ -102,6 +105,13 @@ def mine(energy, bearer):
                     Fore.GREEN + f"Mined: " + Fore.WHITE + f"{energy - energy_remaining} | " + 
                     Fore.GREEN + f"Energy remaining: " + Fore.WHITE + f"{energy_remaining}")
             energy_remaining = energy_remaining - 1
+
+            requests.post(
+                url=save_url,
+                headers=headers,
+                json=save_payload,
+                timeout=20
+            )
         except Exception as e:
             print(f"{Fore.WHITE}Error mining: {e}")
             traceback.print_exc()
@@ -111,6 +121,7 @@ def mine(energy, bearer):
 
 def feed(shards, bearer):
     url = "https://ranch-api.kuroro.com/api/Clicks/MiningAndFeeding"
+    save_url = "https://ranch-api.kuroro.com/api/Bf/Save"
     headers = {
         "authorization": "Bearer " + bearer,
         "referrer": "https://ranch.kuroro.com/",
@@ -119,6 +130,7 @@ def feed(shards, bearer):
     shards_remaining = shards
     while shards_remaining > 0:
         payload = { "feedAmount": 1, "mineAmount": 0 }
+        save_payload = [{"x": 209, "y": 247}]
 
         try:
             requests.post(
@@ -131,6 +143,13 @@ def feed(shards, bearer):
                     Fore.GREEN + f"Feeded: " + Fore.WHITE + f"{shards - shards_remaining} | " + 
                     Fore.GREEN + f"Shards remaining: " + Fore.WHITE + f"{shards_remaining}")
             shards_remaining = shards_remaining - 1
+
+            requests.post(
+                url=save_url,
+                headers=headers,
+                json=save_payload,
+                timeout=20
+            )
         except Exception as e:
             print(f"{Fore.WHITE}Error feeding: {e}")
             traceback.print_exc()
@@ -161,10 +180,10 @@ def main():
                           Fore.RED + f"Error processing account {index}: {str(e)}")
             
             if running:
-                timeout = 60 * 30
+                wait_time = 60 * 30
                 print(Fore.LIGHTBLACK_EX + f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] " + 
-                      Fore.YELLOW + f"Waiting for {timeout / 60} minutes before next cycle...")
-                for _ in range(timeout):
+                      Fore.YELLOW + f"Wait for {int(wait_time/60)} minutes!")
+                for _ in range(wait_time):
                     if not running:
                         break
                     time.sleep(1)
